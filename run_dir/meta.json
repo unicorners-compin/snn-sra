@@ -1,0 +1,12 @@
+{
+  "repo": "snn-sra",
+  "simulation": "main",
+  "timestamp": "20260214-190557",
+  "hostname": "SCIserver",
+  "git_commit": "4e22031f45c59288cc906d2c398b944b3b0ed50d",
+  "files": [
+    "README.md",
+    "metrics.csv",
+    "adaptive_analysis.png"
+  ]
+}

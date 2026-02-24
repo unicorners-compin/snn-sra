@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SNN Routing Visualizer</title>
+  <link rel="stylesheet" href="./snn_route_viz.css">
+</head>
+<body>
+  <main class="app">
+    <section class="hero">
+      <h1>SNN 路由变化可视化</h1>
+      <p>双场景同步回放：Baseline vs Pure SNN Local Routing</p>
+    </section>
+
+    <section class="controls">
+      <div class="control-group">
+        <button id="loadDefaultBtn">加载默认数据</button>
+        <label class="file-label" for="fileInput">选择 JSON 文件</label>
+        <input id="fileInput" type="file" accept="application/json">
+      </div>
+
+      <div class="control-group">
+        <button id="playBtn">播放</button>
+        <button id="pauseBtn">暂停</button>
+        <label for="speedInput">速度</label>
+        <input id="speedInput" type="range" min="1" max="20" value="8">
+        <span id="speedText">8 FPS</span>
+      </div>
+
+      <div class="control-group">
+        <label for="stepInput">Step</label>
+        <input id="stepInput" type="range" min="0" max="0" value="0">
+        <span id="stepText">0 / 0</span>
+      </div>
+
+      <div class="control-group">
+        <label for="flowSelect">探针流</label>
+        <select id="flowSelect"></select>
+        <label for="metricSelect">节点热力</label>
+        <select id="metricSelect">
+          <option value="stress">Stress S</option>
+          <option value="spike_rate">Spike Rate</option>
+          <option value="queue_load">Queue Load</option>
+        </select>
+      </div>
+    </section>
+
+    <section class="status-bar">
+      <div id="statusText">等待加载数据...</div>
+    </section>
+
+    <section class="panels">
+      <article class="panel">
+        <header>
+          <h2 id="titleLeft">Left</h2>
+          <div class="metrics" id="metricsLeft"></div>
+        </header>
+        <svg id="svgLeft" viewBox="0 0 760 760" role="img" aria-label="Left scenario topology"></svg>
+      </article>
+
+      <article class="panel">
+        <header>
+          <h2 id="titleRight">Right</h2>
+          <div class="metrics" id="metricsRight"></div>
+        </header>
+        <svg id="svgRight" viewBox="0 0 760 760" role="img" aria-label="Right scenario topology"></svg>
+      </article>
+    </section>
+  </main>
+
+  <script src="./snn_route_viz.js"></script>
+</body>
+</html>

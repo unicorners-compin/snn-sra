@@ -1,0 +1,25 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+.gitkeep
+uv.lock
+.python-version
+
+# local experiment artifacts
+run_dir/flow_metrics.csv
+run_dir/global_metrics.csv
+run_dir/snn_metrics.csv
+run_dir/snn_ablation_summary.csv
+run_dir/snn_route_viz.json
+run_dir/ospf_compare_runs.csv
+run_dir/ospf_compare_agg.csv
+
+# local notification secrets
+config/notify.local.json
