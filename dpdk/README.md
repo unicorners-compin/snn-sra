@@ -52,4 +52,4 @@ sudo ./dpdk/snn_sra_dpdk_prototype -l 0-1 -n 4 --vdev=net_tap0 --vdev=net_tap1
 2. 把 `S/spike/loss` 状态搬到 per-lcore + 周期聚合，减少锁开销。
 3. 引入 ring + worker pipeline：`RX -> classify -> route_decide -> TX`。
 4. 增加控制面通道（gRPC/Unix socket）以注入 beacon/故障事件。
-5. 对齐现有 Python 评估指标，增加 CSV/Prometheus 导出。
+5. 对齐现有 Python 评估指标，增加 CSV/Prometheus 导出。 
