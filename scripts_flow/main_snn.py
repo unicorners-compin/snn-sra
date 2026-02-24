@@ -83,7 +83,7 @@ def choose_failure_edge(graph):
     return (int(edge[0]), int(edge[1]))
 
 
-def build_snn_runtime_config(topo_kind, routing_mode):
+def build_snn_runtime_config(topo_kind, routing_mode, formula_mode="v1"):
     router_kwargs = {
         "base_cost": 1.0,
         "beta_s": 8.0,
@@ -98,6 +98,8 @@ def build_snn_runtime_config(topo_kind, routing_mode):
         "syn_decay": 0.996,
         "syn_min": 0.0,
         "syn_max": 6.0,
+        "score_norm_mode": "none",
+        "softmin_temperature": 0.0,
     }
     sim_kwargs = {
         "hop_limit": 64,
@@ -155,6 +157,14 @@ def build_snn_runtime_config(topo_kind, routing_mode):
         # Disable burst related influence for DV-based control mode.
         router_kwargs["beta_burst"] = 0.0
 
+    if formula_mode == "v2":
+        router_kwargs.update(
+            {
+                "score_norm_mode": "bounded",
+                "softmin_temperature": 0.08,
+            }
+        )
+
     return {"router": router_kwargs, "sim": sim_kwargs}
 
 
@@ -171,6 +181,7 @@ def run_experiment(
     capture_viz=True,
     probe_flows=None,
     runtime_cfg=None,
+    formula_mode="v1",
 ):
     random.seed(seed)
     np.random.seed(seed)
@@ -187,6 +198,9 @@ def run_experiment(
             T_d=1,
             tau_m=4.0,
             v_th=1.0,
+            stress_mode="v2_sigmoid" if formula_mode == "v2" else "v1",
+            stress_smooth_gain=7.0,
+            stress_smooth_center=0.45,
         )
         for i in range(num_nodes)
     }
@@ -294,6 +308,9 @@ def main():
     ba_m = int(os.getenv("SNN_BA_M", "3"))
     layout_kind = os.getenv("SNN_LAYOUT", "spring")
     routing_mode = os.getenv("SNN_ROUTING_MODE", "snn_event_dv")
+    formula_mode = os.getenv("SNN_FORMULA_MODE", "v1").lower()
+    steps = int(os.getenv("SNN_STEPS", "300"))
+    fail_step = int(os.getenv("SNN_FAIL_STEP", "180"))
 
     base_graph = generate_topology(
         kind=topo_kind,
@@ -307,9 +324,9 @@ def main():
     failure_edge = choose_failure_edge(base_graph)
     print(
         f">>> [SNN] topology={topo_kind} nodes={base_graph.number_of_nodes()} "
-        f"edges={base_graph.number_of_edges()} failure_edge={failure_edge} mode={routing_mode}"
+        f"edges={base_graph.number_of_edges()} failure_edge={failure_edge} mode={routing_mode} formula={formula_mode}"
     )
-    runtime_cfg = build_snn_runtime_config(topo_kind, routing_mode)
+    runtime_cfg = build_snn_runtime_config(topo_kind, routing_mode, formula_mode=formula_mode)
 
     flow_cfg = build_flow_config(num_nodes=num_nodes, seed=topo_seed)
     probe_flows = [(f["src"], f["dst"]) for f in flow_cfg]
@@ -323,6 +340,9 @@ def main():
         capture_viz=True,
         probe_flows=probe_flows,
         runtime_cfg=runtime_cfg,
+        formula_mode=formula_mode,
+        steps=steps,
+        fail_step=fail_step,
     )
     snn_df, snn_viz = run_experiment(
         tag="snn_beta8",
@@ -334,6 +354,9 @@ def main():
         capture_viz=True,
         probe_flows=probe_flows,
         runtime_cfg=runtime_cfg,
+        formula_mode=formula_mode,
+        steps=steps,
+        fail_step=fail_step,
     )
     all_df = pd.concat([baseline_df, snn_df], ignore_index=True)
 
@@ -352,6 +375,7 @@ def main():
             "num_nodes": int(base_graph.number_of_nodes()),
             "num_edges": int(base_graph.number_of_edges()),
             "routing_mode": routing_mode,
+            "formula_mode": formula_mode,
         },
         "topology": build_topology_payload(base_graph, layout_positions, topo_kind),
         "scenarios": {

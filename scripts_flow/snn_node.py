@@ -1,4 +1,5 @@
 from collections import deque
+import math
 
 
 class SNNQueueNode:
@@ -20,6 +21,9 @@ class SNNQueueNode:
         spike_ema_decay=0.9,
         target_rate=0.08,
         homeostasis_lr=0.02,
+        stress_mode="v1",
+        stress_smooth_gain=6.0,
+        stress_smooth_center=0.5,
     ):
         self.node_id = node_id
         self.service_rate = service_rate
@@ -41,6 +45,9 @@ class SNNQueueNode:
         self.spike_ema_decay = spike_ema_decay
         self.target_rate = target_rate
         self.homeostasis_lr = homeostasis_lr
+        self.stress_mode = stress_mode
+        self.stress_smooth_gain = stress_smooth_gain
+        self.stress_smooth_center = stress_smooth_center
 
         self.v = v_reset
         self.refractory_left = 0
@@ -100,8 +107,12 @@ class SNNQueueNode:
         if step_k % self.T_d == 0:
             self.recent_loss_ratio = min(1.0, loss_intensity)
             self.last_queue_load = queue_load
-            # Couple spiking activity with queue/loss observables into structural stress.
-            kappa = min(1.0, 0.55 * self.spike_rate_ema + 0.25 * queue_load + 0.20 * self.recent_loss_ratio)
+            raw = 0.55 * self.spike_rate_ema + 0.25 * queue_load + 0.20 * self.recent_loss_ratio
+            if self.stress_mode == "v2_sigmoid":
+                z = self.stress_smooth_gain * (raw - self.stress_smooth_center)
+                kappa = 1.0 / (1.0 + math.exp(-z))
+            else:
+                kappa = min(1.0, raw)
             self.S = (1.0 - self.alpha) * self.S + self.alpha * kappa
             self.dropped_in_window = 0
 
