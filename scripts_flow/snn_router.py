@@ -1,4 +1,6 @@
 import networkx as nx
+import math
+import random
 
 
 class SNNRouter:
@@ -19,6 +21,9 @@ class SNNRouter:
         syn_decay=0.995,
         syn_min=0.0,
         syn_max=8.0,
+        score_norm_mode="none",
+        softmin_temperature=0.0,
+        softmin_eps=1e-9,
     ):
         self.base_cost = base_cost
         self.beta_s = beta_s
@@ -33,6 +38,9 @@ class SNNRouter:
         self.syn_decay = syn_decay
         self.syn_min = syn_min
         self.syn_max = syn_max
+        self.score_norm_mode = score_norm_mode
+        self.softmin_temperature = softmin_temperature
+        self.softmin_eps = softmin_eps
 
         self.node_trace = {}
         self.syn_penalty = {}
@@ -104,6 +112,13 @@ class SNNRouter:
         link_cost = self.edge_cost(graph, nodes, curr, neighbor)
         spike_term = nodes[neighbor].spike_rate_ema
         h_term = self._hop_hint(graph, neighbor, dst)
+        if self.score_norm_mode == "bounded":
+            link_scale = max(1.0, self.base_cost + 2.0 * self.beta_s + self.syn_max)
+            link_cost = link_cost / link_scale
+            h_term = h_term / (h_term + 1.0)
+            spike_term = min(1.0, max(0.0, spike_term))
+            extra_penalty = min(1.0, max(0.0, float(extra_penalty)))
+            loop_penalty = 1.0 if loop_penalty > 0 else 0.0
         return (
             link_cost
             + self.beta_h * h_term
@@ -130,6 +145,7 @@ class SNNRouter:
 
         best_hop = None
         best_score = float("inf")
+        scored = []
 
         for v in neighbors:
             if avoid is not None and v == avoid:
@@ -146,8 +162,29 @@ class SNNRouter:
                 visited=visited,
                 extra_penalty=extra,
             )
+            scored.append((v, score))
             if score < best_score:
                 best_score = score
                 best_hop = v
+
+        if best_hop is None:
+            return (None, float("inf")) if return_score else None
+
+        if self.softmin_temperature > 0.0 and len(scored) > 1:
+            min_score = min(s for _, s in scored)
+            temp = max(self.softmin_temperature, self.softmin_eps)
+            weights = []
+            total_w = 0.0
+            for v, s in scored:
+                w = math.exp(-(s - min_score) / temp)
+                weights.append((v, s, w))
+                total_w += w
+            if total_w > 0:
+                r = random.random() * total_w
+                acc = 0.0
+                for v, s, w in weights:
+                    acc += w
+                    if r <= acc:
+                        return (v, s) if return_score else v
 
         return (best_hop, best_score) if return_score else best_hop
