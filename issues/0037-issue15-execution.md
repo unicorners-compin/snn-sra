@@ -36,6 +36,12 @@ python3 scripts_flow/node_hybrid_failure_eval.py \
 - `run_dir/issue15/node15_smoke_20260224_summary.csv`
 - `run_dir/issue15/node15_smoke_20260224_significance.csv`
 
+## MinIO 上传结果
+
+1. 存储路径：`snn-sra-exp/issue15/run_20260224_193041_smoke/`
+2. 已上传对象为 `node15_smoke_20260224_node_failure_runs.csv`、`node15_smoke_20260224_hybrid_failure_runs.csv`、`node15_smoke_20260224_summary.csv`、`node15_smoke_20260224_significance.csv`。
+3. 本地目录已清空并移动到 `/tmp/issue15_backup/issue15` 备份以便追溯。
+
 ## 验证结论
 
 1. 脚本可正常运行，无运行时异常。
