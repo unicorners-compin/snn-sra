@@ -1,4 +1,24 @@
 import argparse
+"""
+Analyze spike causality in SNN (Spiking Neural Network) routing under network failures.
+
+This module simulates network behavior under fault conditions using an SNN-based router
+and identifies high-pressure spike events that correlate with network stress. It measures
+the relationship between spike events and subsequent changes in route configurations,
+packet delivery rates, and traffic flow patterns.
+
+Key metrics computed:
+- Event detection: High-stress spike events identified by neuron firing above quantile threshold
+- Route change correlation: Ratio and delta of routing protocol activity before/after events
+- Flow impact: Drop rates and flow deltas at nodes experiencing spike events
+- Recovery metrics: PDR (Packet Delivery Rate) recovery slope and gain post-failure
+
+The analysis varies topology types (e.g., Erdős-Rényi, Barabási-Albert) and random seeds,
+generating per-run statistics and aggregated mean statistics across runs.
+
+Main entry point: main() - Parses CLI arguments and orchestrates simulation runs,
+outputting results to CSV files for further analysis.
+"""
 import copy
 import random
 import sys
