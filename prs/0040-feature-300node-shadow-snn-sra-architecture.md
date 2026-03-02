@@ -1,6 +1,8 @@
 ## Linked Issue
 
-- refs #40
+- refs #28
+- refs #29
+- refs #30
 
 ## Why
 
