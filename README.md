@@ -205,6 +205,7 @@ V(S,t)=\frac{1}{2}\sum_{i\in V} S_i(t)^2
 - 主 SNN A/B：`scripts_flow/main_snn.py`
 - 基线对比：`scripts_flow/compare_snn_vs_ospf.py`
 - 路由灰度（无前端，时变拓扑轨迹输入）：`scripts_flow/run_routing_shadow.py`
+- 路由灰度（直接读取 new_huan 当前拓扑矩阵）：`scripts_flow/run_new_huan_routing_compare.py`
 - 统计评估：`scripts_flow/paper_stat_eval*.py`
 - 时延分解：`scripts_flow/paper_delay_eval_parallel.py`
 - 消融：`scripts_flow/paper_ablation_eval.py`
@@ -220,6 +221,17 @@ python scripts_flow/run_routing_shadow.py \
   --snn-mode snn_event_dv \
   --out run_dir/routing_shadow_steps.csv \
   --out-agg run_dir/routing_shadow_summary.csv
+```
+
+```bash
+sudo -n python3 scripts_flow/run_new_huan_routing_compare.py \
+  --redis-host 172.17.0.1 \
+  --matrix-key net:topology:matrix \
+  --nodes 300 \
+  --steps 120 \
+  --dt 1.0 \
+  --out run_dir/new_huan_live_steps.csv \
+  --out-agg run_dir/new_huan_live_summary.csv
 ```
 
 ## 9. 模型性质说明
